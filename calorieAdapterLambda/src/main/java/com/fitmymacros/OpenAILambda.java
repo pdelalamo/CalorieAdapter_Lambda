@@ -31,8 +31,8 @@ import software.amazon.awssdk.services.ssm.model.SsmException;
 public class OpenAILambda implements RequestHandler<Map<String, Object>, Object> {
 
     private static String OPENAI_API_KEY_NAME = "OpenAI-API_Key_Encrypted";
-    private static String OPENAI_MODEL_NAME = "OpenAI-Model";
-    private static String OPENAI_MODEL_TEMPERATURE = "OpenAI-Model-Temperature";
+    private static String OPENAI_MODEL_NAME = "OpenAI-Model-CalorieAdapter";
+    private static String OPENAI_MODEL_TEMPERATURE = "OpenAI-Model-Temperature-CalorieAdapter";
     private static String OPENAI_MAX_TOKENS = "OpenAI-Max-Tokens";
     private SsmClient ssmClient;
     private String OPENAI_AI_KEY;
@@ -264,30 +264,26 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
      * @return
      */
     private String generatePrompt(Map<String, String> input) {
+        String recipeName = input.get("recipeName").toString();
         String userId = input.get("userId").toString();
         String measureUnit = input.get("measureUnit").toString();
         int calories = Integer.parseInt(input.get("calories").toString());
         int protein = Integer.parseInt(input.get("protein").toString());
         int carbs = Integer.parseInt(input.get("carbs").toString());
         int fat = Integer.parseInt(input.get("fat").toString());
-        String satietyLevel = input.get("satietyLevel").toString();
         String precision = input.get("precision").toString(); // exact grams of protein, carbs and fat, or slight
                                                               // variation?
-        boolean anyIngredientsMode = Boolean.parseBoolean(input.get("anyIngredientsMode").toString());
-        boolean expandIngredients = Boolean.parseBoolean(input.get("expandIngredients").toString());
         boolean glutenFree = Boolean.parseBoolean(input.get("glutenFree").toString());
         boolean vegan = Boolean.parseBoolean(input.get("vegan").toString());
         boolean vegetarian = Boolean.parseBoolean(input.get("vegetarian").toString());
-        String cuisineStyle = input.get("cuisineStyle").toString();
         String cookingTime = input.get("cookingTime").toString();
-        String flavor = input.get("flavor").toString();
-        String occasion = input.get("occasion").toString();
+        boolean anyIngredientsMode = Boolean.parseBoolean(input.get("anyIngredientsMode").toString());
 
         QueryResponse queryResponse = this.getUserData(userId);
         Map<String, AttributeValue> userData = queryResponse.items().get(0);
-        return this.createPrompt(precision, measureUnit, calories, protein, carbs, fat, satietyLevel,
-                anyIngredientsMode,
-                expandIngredients, glutenFree, vegan, vegetarian, cuisineStyle, cookingTime, flavor, occasion,
+        return this.createPrompt(anyIngredientsMode, recipeName, precision, measureUnit, calories, protein, carbs, fat,
+                glutenFree, vegan,
+                vegetarian, cookingTime,
                 userData);
     }
 
@@ -340,10 +336,11 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
      * @param userData
      * @return
      */
-    private String createPrompt(String precision, String measureUnit, int calories, int protein, int carbs, int fat,
-            String satietyLevel, boolean anyIngredientsMode, boolean expandIngredients, boolean glutenFree,
-            boolean vegan, boolean vegetarian, String cuisineStyle, String cookingTime, String flavor,
-            String occasion, Map<String, AttributeValue> userData) {
+    private String createPrompt(boolean anyIngredientsMode, String recipeName, String precision, String measureUnit,
+            int calories, int protein,
+            int carbs, int fat,
+            boolean glutenFree,
+            boolean vegan, boolean vegetarian, String cookingTime, Map<String, AttributeValue> userData) {
 
         System.out.println("userData: " + userData);
         StringBuilder promptBuilder = new StringBuilder();
@@ -351,11 +348,8 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         // Target nutritional goals
         promptBuilder.append(
                 String.format(
-                        "Generate 2 recipes. Each recipe should have %s %d calories, %d %s of protein, %d %s of carbs and %d %s of fat",
-                        precision, calories, protein, measureUnit, carbs, measureUnit, fat, measureUnit));
-
-        // Desired satiety level
-        promptBuilder.append(String.format(", ensuring they are %s", satietyLevel));
+                        "Please, adapt this recipe: \"%s\" to have %s %d %s of protein, %d %s of carbs and %d %s of fat",
+                        recipeName, precision, protein, measureUnit, carbs, measureUnit, fat, measureUnit));
 
         // Details about available ingredients
         if (!anyIngredientsMode) {
@@ -375,20 +369,6 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             }
         }
 
-        // previous 10 generated recipes
-        List<AttributeValue> recipeList = userData.get("previous_recipes").l();
-        if (!recipeList.isEmpty()) {
-            promptBuilder.append(". If possible, create recipes that heavily differ in ingredients and flavour from:");
-            System.out.println("recipeList: " + recipeList);
-            recipeList.forEach(recipe -> {
-                String recipeName = recipe.s();
-                System.out.println("recipe: " + recipeName);
-                promptBuilder.append(String.format(" %s,", recipeName));
-            });
-            // Remove trailing comma
-            promptBuilder.deleteCharAt(promptBuilder.length() - 1);
-        }
-
         // Exclude any allergens or intolerances
         List<AttributeValue> allergiesList = userData.get("allergies-intolerances").l();
         System.out.println("allergies: " + allergiesList);
@@ -406,39 +386,19 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         boolean userIsVegan = userData.get("vegan").bool();
         boolean userIsVegetarian = userData.get("vegetarian").bool();
         if (userIsVegan)
-            promptBuilder.append(", and ensuring all recipes are vegan-friendly");
+            promptBuilder.append(", and ensuring it is vegan-friendly");
         else if (userIsVegetarian) {
             if (vegan) {
-                promptBuilder.append(", and ensuring all recipes are vegan-friendly");
+                promptBuilder.append(", and ensuring it is vegan-friendly");
             } else
-                promptBuilder.append(", and ensuring all recipes are vegetarian-friendly");
+                promptBuilder.append(", and ensuring it is vegetarian-friendly");
         } else if (vegan || vegetarian) {
-            promptBuilder.append(", and ensuring all recipes are");
+            promptBuilder.append(", and ensuring it is");
             if (vegan) {
                 promptBuilder.append(" vegan-friendly");
             } else {
                 promptBuilder.append(" vegetarian-friendly");
             }
-        }
-
-        // Cuisine style
-        if (cuisineStyle != null && !cuisineStyle.isEmpty()) {
-            promptBuilder.append(String.format(", with a focus on %s cuisine", cuisineStyle));
-        }
-
-        // Cooking time
-        if (cookingTime != null && !cookingTime.isEmpty()) {
-            promptBuilder.append(String.format(", a maximum cooking time of %s", cookingTime));
-        }
-
-        // Flavor profile
-        if (flavor != null && !flavor.isEmpty()) {
-            promptBuilder.append(String.format(", a %s flavor profile", flavor));
-        }
-
-        // Occasion
-        if (occasion != null && !occasion.isEmpty()) {
-            promptBuilder.append(String.format(", and suitable for %s", occasion));
         }
 
         // Construct the final prompt
@@ -452,7 +412,60 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
      * @return
      */
     private String generateSystemInstructions() {
-        return "You're a helpful assistant, that returns recipes names as a list like: [recipe1, recipe2...]";
+        return "You are a helpful assistant, that generates a response that just contains a JSON, that follows this structure: \"{\\\\n"
+                + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"recipeName\\\": \\\"\\\",\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"cookingTime\\\": \\\"\\\",\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"caloriesAndMacros\": {\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"calories \\\": \\\"\\\",\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"protein\\\": \\\"\\\",\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"carbs\\\": \\\"\\\",\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"fat\\\": \\\"\\\"\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" },\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"ingredientsAndQuantities\\\": {\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \"  \\\"ingredient name\\\": \\\"\\\", \\\"ingredient quantity\\\": \\\"\\\" ,\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \"  \\\"ingredient name\\\": \\\"\\\", \\\"ingredient quantity\\\": \\\"\\\" \\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" },\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"cookingProcess\\\": [\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"Step 1\\\",\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" \\\"Step 2\\\"\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \" ]\\\\n" + //
+                "\"\n" + //
+                "                +\n" + //
+                "                \"}\\\\n" + //
+                "\". It's so important that the ingredients and quantities you provide, exactly fit the calories and macros provided in the prompt. Each ingredient is measured uncooked.";
     }
 
     /**
