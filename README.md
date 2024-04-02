@@ -1,0 +1,1 @@
+this lambda will adapt the given recipe to the ingredients that the user has, and also to their macronutrient needs, and equipment available at home.
