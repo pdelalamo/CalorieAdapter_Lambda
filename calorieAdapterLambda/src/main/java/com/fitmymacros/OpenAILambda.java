@@ -312,7 +312,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             return dynamoDbClient.query(queryRequest);
 
         } catch (DynamoDbException e) {
-            System.err.println("user data exception: " + e.getMessage);
+            System.out.println("user data exception: " + e.getMessage());
             throw new RuntimeException("Error retrieving data from DynamoDB: " + e.getMessage());
         }
     }
