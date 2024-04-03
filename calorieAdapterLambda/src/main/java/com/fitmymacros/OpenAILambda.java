@@ -59,6 +59,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
     @Override
     public Object handleRequest(Map<String, Object> input, Context context) {
         try {
+            System.out.println("input: " + input);
             Map<String, String> queryParams = this.extractQueryString(input);
             String opId = queryParams.get("opId").toString();
             String prompt = generatePrompt(queryParams);
