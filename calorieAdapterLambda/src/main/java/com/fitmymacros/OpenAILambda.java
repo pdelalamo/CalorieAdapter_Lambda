@@ -484,9 +484,9 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
      */
     private void putItemInDynamoDB(String opId, String openAIResult) {
         AttributeValue opIdAttributeValue = AttributeValue.builder().s(opId).build();
-        String parsedJsonAraay = this.parseJsonArray(openAIResult);
-        System.out.println("parsedJsonArray: " + parsedJsonAraay);
-        AttributeValue openAIResultAttributeValue = AttributeValue.builder().s(parsedJsonAraay).build();
+        String parsedJson = this.parseJson(openAIResult);
+        System.out.println("parsedJson: " + parsedJson);
+        AttributeValue openAIResultAttributeValue = AttributeValue.builder().s(parsedJson).build();
         AttributeValue ttlAttributeValue = AttributeValue.builder()
                 .n(Long.toString((System.currentTimeMillis() / 1000L) + (5 * 60))).build();
 
@@ -504,14 +504,14 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
 
     /**
      * This method removes any leading or trailing characters that could be
-     * generated before or after the JsonArray
+     * generated before or after the Json
      * 
      * @param openAIResult
      * @return
      */
-    private String parseJsonArray(String openAIResult) {
-        int startIndex = openAIResult.indexOf('[');
-        int endIndex = openAIResult.lastIndexOf(']');
+    private String parseJson(String openAIResult) {
+        int startIndex = openAIResult.indexOf('{');
+        int endIndex = openAIResult.lastIndexOf('}');
 
         if (startIndex != -1 && endIndex != -1) {
             return openAIResult.substring(startIndex, endIndex + 1);
