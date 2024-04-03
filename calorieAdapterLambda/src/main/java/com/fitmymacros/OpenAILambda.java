@@ -282,6 +282,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         boolean anyIngredientsMode = Boolean.parseBoolean(input.get("anyIngredientsMode").toString());
 
         QueryResponse queryResponse = this.getUserData(userId);
+        System.out.println("query response: " + queryResponse);
         Map<String, AttributeValue> userData = queryResponse.items().get(0);
         return this.createPrompt(anyIngredientsMode, recipeName, precision, measureUnit, calories, protein, carbs, fat,
                 glutenFree, vegan,
@@ -297,6 +298,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
      */
     private QueryResponse getUserData(String userId) {
         try {
+            System.out.println("Entering getUserData with userId: " + userId);
             Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
             expressionAttributeValues.put(":uid", AttributeValue.builder().s(userId).build());
             String keyConditionExpression = "userId = :uid";
@@ -310,6 +312,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             return dynamoDbClient.query(queryRequest);
 
         } catch (DynamoDbException e) {
+            System.err.println("user data exception: " + e.getMessage);
             throw new RuntimeException("Error retrieving data from DynamoDB: " + e.getMessage());
         }
     }
