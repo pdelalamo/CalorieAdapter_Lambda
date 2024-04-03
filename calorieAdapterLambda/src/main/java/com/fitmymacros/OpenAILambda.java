@@ -61,6 +61,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         try {
             System.out.println("input: " + input);
             Map<String, String> queryParams = this.extractQueryString(input);
+            System.out.println("queryParams: " + queryParams);
             String opId = queryParams.get("opId").toString();
             String prompt = generatePrompt(queryParams);
             System.out.println("prompt: " + prompt);
@@ -481,6 +482,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
     private void putItemInDynamoDB(String opId, String openAIResult) {
         AttributeValue opIdAttributeValue = AttributeValue.builder().s(opId).build();
         String parsedJsonAraay = this.parseJsonArray(openAIResult);
+        System.out.println("parsedJsonArray: " + parsedJsonAraay);
         AttributeValue openAIResultAttributeValue = AttributeValue.builder().s(parsedJsonAraay).build();
         AttributeValue ttlAttributeValue = AttributeValue.builder()
                 .n(Long.toString((System.currentTimeMillis() / 1000L) + (5 * 60))).build();
