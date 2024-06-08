@@ -101,7 +101,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             List<ChatCompletionResponseChoice> choices = completionResponse.getChoices();
             ChatCompletionResponseChoice aChoice = choices.get(0);
             this.putItemInDynamoDB(opId, aChoice.getMessage().getContent());
-            return buildSuccessResponse();
+            return buildSuccessResponse(aChoice.getMessage().getContent());
         } catch (Exception e) {
             return this.buildErrorResponse(e.getMessage());
         }
@@ -520,10 +520,10 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         }
     }
 
-    private Map<String, Object> buildSuccessResponse() {
+    private Map<String, Object> buildSuccessResponse(String result) {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("statusCode", 200);
-        responseBody.put("body", "Successfully invoked the lambda asynchronously");
+        responseBody.put("body", result);
         return responseBody;
     }
 
