@@ -430,7 +430,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
                 "                \" \\\"caloriesAndMacros\": {\\\\n" + //
                 "\"\n" + //
                 "                +\n" + //
-                "                \" \\\"calories \\\": \\\"\\\",\\\\n" + //
+                "                \" \\\"calories\\\": \\\"\\\",\\\\n" + //
                 "\"\n" + //
                 "                +\n" + //
                 "                \" \\\"protein\\\": \\\"\\\",\\\\n" + //
