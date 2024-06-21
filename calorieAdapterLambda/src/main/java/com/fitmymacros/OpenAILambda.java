@@ -421,6 +421,19 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             promptBuilder.append(String.format(", ensuring it fits %s diet", dietType));
         }
 
+        // Home equipment
+        List<AttributeValue> equipmentList = userData.get("equipment").l();
+        System.out.println("equipment: " + equipmentList);
+        if (!equipmentList.isEmpty()) {
+            promptBuilder.append(", and considering that this is the equipment available at home: ");
+            for (AttributeValue equipment : equipmentList) {
+                String equipmentName = equipment.s();
+                promptBuilder.append(String.format(" %s,", equipmentName));
+            }
+            // Remove trailing comma
+            promptBuilder.deleteCharAt(promptBuilder.length() - 1);
+        }
+
         // Construct the final prompt
         return promptBuilder.toString();
     }
