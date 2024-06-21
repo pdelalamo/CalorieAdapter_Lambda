@@ -1,5 +1,6 @@
 package com.fitmymacros;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +45,11 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
     private String URL = "https://api.openai.com/v1/chat/completions";
     private ObjectMapper objectMapper;
     private WebClient webClient;
+    private static List<String> fruitUnits = new ArrayList<>(Arrays.asList(
+            "Apple", "Banana", "Orange", "Peach", "Kiwi", "Pear", "Cherry", "Plum", "Apricot", "Papaya", "Avocado",
+            "Grapefruit", "Lemon", "Lime", "Tangerine", "Cantaloupe", "Honeydew melon", "Nectarine", "Persimmon",
+            "Dragon fruit", "Jackfruit", "Star fruit", "Ackee", "Plantain", "Coconut", "Mangosteen", "Feijoa",
+            "Kumquat", "Pummelo", "Satsuma", "Ugli fruit"));
 
     public OpenAILambda() {
         this.ssmClient = SsmClient.builder().region(Region.EU_WEST_3).build();
@@ -364,7 +370,10 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             for (Map.Entry<String, AttributeValue> entry : foodMap.entrySet()) {
                 String foodName = entry.getKey();
                 AttributeValue quantityAttr = entry.getValue();
-                if (quantityAttr.n() != null) { // Check if it's a number
+                if (fruitUnits.contains(foodName)) { // for these foods use units
+                    int foodQuantity = Integer.parseInt(quantityAttr.n());
+                    promptBuilder.append(String.format(", %d units of %s", foodQuantity, foodName));
+                } else if (quantityAttr.n() != null) { // Check if it's a number
                     int foodQuantity = Integer.parseInt(quantityAttr.n());
                     promptBuilder.append(String.format(", %dg of %s", foodQuantity, foodName));
                 } else if (quantityAttr.s() != null) { // Check if it's a string
@@ -404,6 +413,12 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             } else {
                 promptBuilder.append(" vegetarian-friendly");
             }
+        }
+
+        String dietType = userData.get("dietType").s();
+        // Diet type
+        if (cuisineStyle != null && !cuisineStyle.isEmpty()) {
+            promptBuilder.append(String.format(", ensuring it fits %s diet", dietType));
         }
 
         // Construct the final prompt
