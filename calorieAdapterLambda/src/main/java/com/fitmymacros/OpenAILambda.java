@@ -365,7 +365,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         // Details about available ingredients
         if (!anyIngredientsMode) {
             promptBuilder.append(
-                    ". You can only include the following ingredients available at home: ");
+                    ". Each ingredient is measured dry and uncooked. E.g: If you reference rice, pasta, etc, the quantities you give should be before cooking it. You can only include the following ingredients available at home: ");
             Map<String, AttributeValue> foodMap = userData.get("food").m();
             for (Map.Entry<String, AttributeValue> entry : foodMap.entrySet()) {
                 String foodName = entry.getKey();
@@ -485,7 +485,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
                 "\"\n" + //
                 "                +\n" + //
                 "                \"}\\\\n" + //
-                "\". It's so important that the ingredients and quantities you provide, exactly fit the calories and macros provided in the prompt. Each ingredient is measured uncooked.";
+                "\". It's so important that the ingredients and quantities you provide, exactly fit the calories and macros provided in the prompt.";
     }
 
     /**
