@@ -419,7 +419,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
 
         String dietType = userData.get("dietType").s();
         // Diet type
-        if (cuisineStyle != null && !cuisineStyle.isEmpty()) {
+        if (dietType != null && !dietType.isEmpty()) {
             promptBuilder.append(String.format(", ensuring it fits %s diet", dietType));
         }
 
