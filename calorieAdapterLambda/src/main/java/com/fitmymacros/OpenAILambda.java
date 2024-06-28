@@ -384,7 +384,9 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         }
 
         // Exclude any allergens or intolerances
-        List<AttributeValue> allergiesList = userData.get("allergies-intolerances").l();
+        List<AttributeValue> allergiesList = userData.get("allergies-intolerances") != null
+                ? userData.get("allergies-intolerances").l()
+                : new ArrayList<>();
         System.out.println("allergies: " + allergiesList);
         if (!allergiesList.isEmpty()) {
             promptBuilder.append(", avoiding ingredients such as");
@@ -422,7 +424,8 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
         }
 
         // Home equipment
-        List<AttributeValue> equipmentList = userData.get("equipment").l();
+        List<AttributeValue> equipmentList = userData.get("equipment") != null ? userData.get("equipment").l()
+                : new ArrayList<>();
         System.out.println("equipment: " + equipmentList);
         if (!equipmentList.isEmpty()) {
             promptBuilder.append(", and considering that this is the equipment available at home: ");
