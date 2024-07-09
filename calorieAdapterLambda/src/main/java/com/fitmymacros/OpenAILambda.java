@@ -451,60 +451,24 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
      * @return
      */
     private String generateSystemInstructions() {
-        return "You are a helpful assistant, that generates a response that just contains a JSON, that follows this structure: \"{\\\\n"
-                + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"recipeName\\\": \\\"\\\",\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"cookingTime\\\": \\\"\\\",\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"caloriesAndMacros\": {\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"calories\\\": \\\"\\\",\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"protein\\\": \\\"\\\",\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"carbs\\\": \\\"\\\",\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"fat\\\": \\\"\\\"\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" },\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"ingredientsAndQuantities\\\": {\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \"  \\\"ingredient name\\\": \\\"\\\", \\\"ingredient quantity\\\": \\\"\\\" ,\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \"  \\\"ingredient name\\\": \\\"\\\", \\\"ingredient quantity\\\": \\\"\\\" \\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" },\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"cookingProcess\\\": [\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"Step 1\\\",\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" \\\"Step 2\\\"\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \" ]\\\\n" + //
-                "\"\n" + //
-                "                +\n" + //
-                "                \"}\\\\n" + //
-                "\". It's so important that the ingredients and quantities you provide, exactly fit the calories and macros provided in the prompt.";
+        return "You are a helpful assistant, that generates a response that just contains a JSON, that follows this structure: {\n"
+                + "  \"recipeName\": \"\",\n"
+                + "  \"cookingTime\": \"\",\n"
+                + "  \"caloriesAndMacros\": {\n"
+                + "    \"calories\": \"\",\n"
+                + "    \"protein\": \"\",\n"
+                + "    \"carbs\": \"\",\n"
+                + "    \"fat\": \"\"\n"
+                + "  },\n"
+                + "  \"ingredientsAndQuantities\": {\n"
+                + "    \"ingredient name\": \"\", \"ingredient quantity\": \"\",\n"
+                + "    \"ingredient name\": \"\", \"ingredient quantity\": \"\"\n"
+                + "  },\n"
+                + "  \"cookingProcess\": [\n"
+                + "    \"Step 1\",\n"
+                + "    \"Step 2\"\n"
+                + "  ]\n"
+                + "}. It's so important that the ingredients and quantities you provide, exactly fit the calories and macros provided in the prompt, and Each ingredient is measured dry and uncooked. E.g: If you reference rice, pasta, etc, the quantities you give should be before cooking it.";
     }
 
     /**
