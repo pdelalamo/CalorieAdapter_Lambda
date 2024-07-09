@@ -371,14 +371,17 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
                 String foodName = entry.getKey();
                 AttributeValue quantityAttr = entry.getValue();
                 if (fruitUnits.contains(foodName)) { // for these foods use units
-                    int foodQuantity = Integer.parseInt(quantityAttr.n());
-                    promptBuilder.append(String.format(", %d units of %s", foodQuantity, foodName));
+                    int foodQuantity = Integer.parseInt(quantityAttr.s());
+                    if (foodQuantity != 0)
+                        promptBuilder.append(String.format(", %d units of %s", foodQuantity, foodName));
                 } else if (quantityAttr.n() != null) { // Check if it's a number
                     int foodQuantity = Integer.parseInt(quantityAttr.n());
-                    promptBuilder.append(String.format(", %dg of %s", foodQuantity, foodName));
+                    if (foodQuantity != 0)
+                        promptBuilder.append(String.format(", %dg of %s", foodQuantity, foodName));
                 } else if (quantityAttr.s() != null) { // Check if it's a string
                     String foodQuantityString = quantityAttr.s();
-                    promptBuilder.append(String.format(", %s %s", foodQuantityString, foodName));
+                    if (!foodQuantityString.equalsIgnoreCase("0"))
+                        promptBuilder.append(String.format(", %s %s", foodQuantityString, foodName));
                 }
             }
         }
