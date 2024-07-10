@@ -73,6 +73,7 @@ public class OpenAILambda implements RequestHandler<Map<String, Object>, Object>
             System.out.println("prompt: " + prompt);
 
             Map<String, Object> requestBody = new HashMap<>();
+            System.out.println("using model: " + this.OPENAI_MODEL);
             requestBody.put("model", this.OPENAI_MODEL);
             requestBody.put("messages", Arrays.asList(
                     Map.of("role", "system",
