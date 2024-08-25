@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  OpenAILambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: com.fitmymacros.OpenAILambda::handleRequest
+      Runtime: java17
+      CodeUri: target/openAILambda-jar-with-dependencies.jar
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: '*'
+      MemorySize: 512
+      Timeout: 50
+      
+  OpenAILambdaAlias:
+     Type: AWS::Lambda::Alias
+     DependsOn: OpenAILambdaFunction
+     Properties:
+      FunctionName: !Ref OpenAILambdaFunction
+      FunctionVersion: $LATEST
+      Name: dev  
